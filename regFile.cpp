@@ -1,13 +1,11 @@
 #include <bits/stdc++.h>
 #include "regFile.h"
-#include "errorDetect.h"
 using namespace std;
 
 extern bitset<32> pc;
-extern bitset<32> sp;
+extern bitset<32> initialSp;
 extern bitset<32> LO;
 extern bitset<32> HI;
-extern ErrorDetect ED;
 
 
 RegisterFile::RegisterFile(){
@@ -18,7 +16,7 @@ RegisterFile::RegisterFile(){
     bitset<32> zero(0);
     for(int i=0;i<31;i++){
     	if(i == 29){//sp
-			oldRegisters[i] = registers[i] = sp;
+			oldRegisters[i] = registers[i] = initialSp;
             continue;
 		}
 		registers[i] = zero;
@@ -29,16 +27,16 @@ RegisterFile::RegisterFile(){
 	oldPc = pc;
 }
 
-void RegisterFile::readWrite(bitset<5> readRegigter1, bitset<5> readRegigter2, bitset<5> writeRegigter
+void RegisterFile::readWrite(bitset<5> readRegister1, bitset<5> readRegister2, bitset<5> writeRegister
                              , bitset<32> writeData, bitset<1> regWrite){
      if(regWrite[0]){
-		if(ED.writeToRegister0(writeRegigter) == 1)
+		if(writeRegister == 0)
             return;
-     	registers[writeRegigter.to_ulong()] = writeData;
+     	registers[writeRegister.to_ulong()] = writeData;
      }
      else{
-        readData1 = registers[readRegigter1.to_ulong()];
-        readData2 = registers[readRegigter2.to_ulong()];
+        readData1 = registers[readRegister1.to_ulong()];
+        readData2 = registers[readRegister2.to_ulong()];
      }
 }
 
