@@ -67,9 +67,35 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
         }
         ALUResult = data1;
     }
-    else if(ALUControl == 11){//mult
-        long long int ALUResultLongInt = data1.to_ulong() * data2.to_ulong();
-        bitset<64> ALUResultInt64(ALUResultLongInt);
+	else if(ALUControl == 11 || ALUControl == 12){//mult multu
+        bitset<64> ALUResultInt64(0);
+        if(ALUControl == 11){//mult
+            //turn - => +
+            bitset<32> absData1(0);
+            bitset<32> absData2(0);
+            if(data1[31] == 1)
+                absData1 = bitset<32>(data1.flip().to_ulong()+1);
+            if(data2[31] == 1)
+                absData2 = bitset<32>(data2.flip().to_ulong()+1);
+            for(int i=0;i<32;i++){
+                if(absData2[i] == 1){
+                    bitset<64> temp = bitset<64>(absData1.to_ulong());
+                    temp <<= i;
+                    ALUResultInt64 = bitset<64>(ALUResultInt64.to_ullong()+temp.to_ullong());
+                }
+            }
+            if(data1[31] ^ data2[31])
+                ALUResultInt64 = bitset<64>(ALUResultInt64.flip().to_ullong()+1);
+        }
+        else{//multu
+            for(int i=0;i<32;i++){
+                if(data2[i] == 1){
+                    bitset<64> temp = bitset<64>(data1.to_ulong());
+                    temp <<= i;
+                    ALUResultInt64 = bitset<64>(ALUResultInt64.to_ullong()+temp.to_ullong());
+                }
+            }
+        }
         for(int i=0;i<32;i++)
             HI.set(i, ALUResultInt64[i+32]);
         for(int i=0;i<32;i++)
@@ -86,16 +112,16 @@ bitset<4> ALU::ALUcontrol(bitset<2> ALUop, bitset<6> func){
     ALUControl.set(3, ALUop[1]&(!func[5]));
 
     ALUControl.set(2, (ALUop[1]&func[5]&func[2]&func[1])|
-                      (ALUop[1]&func[5]&func[3]&(!func[2])));
+                      (ALUop[1]&func[5]&func[3]&(!func[2]))|
+                      (ALUop[1]&(!func[5])&func[3]&func[0]));
 
     ALUControl.set(1, (ALUop[1]&func[5]&func[2]&(!func[1]))|
                       (ALUop[1]&func[5]&func[3])|
                       (ALUop[1]&(!func[5])&(!func[4])&func[0])|
-                      (ALUop[1]&func[4]));
+                      (ALUop[1]&func[4]&(!func[0])));
 
     int set0 = 0;
-    if((func == 34) || (func == 37) || (func == 39) || (func == 42) || (func == 2) || (func == 24) ||
-        (func == 25)){
+    if((func == 34) || (func == 37) || (func == 39) || (func == 42) || (func == 2) || (func == 24)){
         set0 = 1;
     }
     ALUControl.set(0, (ALUop[0])|set0);
