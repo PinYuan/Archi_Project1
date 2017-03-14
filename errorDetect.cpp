@@ -3,53 +3,63 @@
 using namespace std;
 
 ErrorDetect::ErrorDetect(){
+	cycle = 0;
     mult = mf = 0;
     FILE* fptr;
-    fopen("error_dump.rpt", "w");
+    fptr = fopen("error_dump.rpt", "w");
     fclose(fptr);
 }
-void ErrorDetect::writeToRegister0(bitset<5> writeToReg, int cycle){
+void ErrorDetect::setCycle(int cycle){
+    this->cycle = cycle;
+}
+int ErrorDetect::writeToRegister0(bitset<5> writeToReg){
     if(writeToReg == 0){
         FILE* fptr;
-        fopen("error_dump.rpt", "a");
+        fptr = fopen("error_dump.rpt", "a");
         fprintf(fptr , "In cycle %d: Write $0 Error\n", cycle);
         fclose(fptr);
-    }
+    	return 1;
+	}
+	else return 0;
 }
-void ErrorDetect::numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output, int cycle){
+int ErrorDetect::numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output){
     if(data1[31]==data2[31] && data1[31] != output[31]){
         FILE* fptr;
-        fopen("error_dump.rpt", "a");
+        fptr = fopen("error_dump.rpt", "a");
         fprintf(fptr , "In cycle %d: Number Overflow\n", cycle);
         fclose(fptr);
+		return 1;
     }
+	else return 0;
 }
-void ErrorDetect::overwriteHILORegister(bitset<6> func, int cycle){//every time call mult(u) and mfhi(lo)
+int ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u) and mfhi(lo)
     if(func == 24 || func == 25){//mult(u)
         mult++;
         if(mf != mult-1){
             FILE* fptr;
-            fopen("error_dump.rpt", "a");
+            fptr = fopen("error_dump.rpt", "a");
             fprintf(fptr , "In cycle %d: Overwrite HI-LO registers\n", cycle);
             fclose(fptr);
+			return 1;
         }
     }
     else if(func == 16 || func ==18){
         mf++;
     }
+	return 0;
 }
-int ErrorDetect::memoryAddressOverflow(bitset<32> address, int cycle){
+int ErrorDetect::memoryAddressOverflow(bitset<32> address){
     int halt = 0;
     if(address.to_ulong() > 1023){
         halt = 1;
         FILE* fptr;
-        fopen("error_dump.rpt", "a");
+        fptr = fopen("error_dump.rpt", "a");
         fprintf(fptr , "In cycle %d: Address Overflow\n", cycle);
         fclose(fptr);
     }
     return halt;
 }
-int ErrorDetect::dataMisaligned(bitset<6> opCode, bitset<32> address, int cycle){
+int ErrorDetect::dataMisaligned(bitset<6> opCode, bitset<32> address){
     int halt = 0;
     if(opCode == 35 || opCode == 43){//word lw sw
         if(address.to_ulong()%4 != 0)
@@ -61,7 +71,7 @@ int ErrorDetect::dataMisaligned(bitset<6> opCode, bitset<32> address, int cycle)
     }
     if(halt){
         FILE* fptr;
-        fopen("error_dump.rpt", "a");
+        fptr = fopen("error_dump.rpt", "a");
         fprintf(fptr , "In cycle %d: Misalignment Error\n", cycle);
         fclose(fptr);
     }
