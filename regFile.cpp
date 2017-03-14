@@ -1,8 +1,13 @@
 #include <bits/stdc++.h>
+#include "regFile.h"
+#include "errorDetect.h"
 using namespace std;
-extern bitset<32>pc;
-extern bitset<32>LO;
-extern bitset<32>HI;
+
+extern bitset<32> pc;
+extern bitset<32> sp;
+extern bitset<32> LO;
+extern bitset<32> HI;
+extern ErrorDetect ED;
 
 
 RegisterFile::RegisterFile(){
@@ -12,7 +17,11 @@ RegisterFile::RegisterFile(){
 
     bitset<32> zero(0);
     for(int i=0;i<31;i++){
-    	registers[i] = zero;
+    	if(i == 29){//sp
+			oldRegisters[i] = registers[i] = sp;
+            continue;
+		}
+		registers[i] = zero;
       	oldRegisters[i] = zero;
 	}
     HI = oldHI = zero;
@@ -23,6 +32,8 @@ RegisterFile::RegisterFile(){
 void RegisterFile::readWrite(bitset<5> readRegigter1, bitset<5> readRegigter2, bitset<5> writeRegigter
                              , bitset<32> writeData, bitset<1> regWrite){
      if(regWrite[0]){
+		if(ED.writeToRegister0(writeRegigter) == 1)
+            return;
      	registers[writeRegigter.to_ulong()] = writeData;
      }
      else{
@@ -36,57 +47,47 @@ void RegisterFile::outputRegister(int cycle){
     fptr = fopen("registerOut.out", "a");
     if(!fptr){printf("open file error\n");return;}
 
-	if(cycle == 0){//all print
-		char buffer[20] = {'\0'};
-   		//reg
-	    for(int i=0;i<32;i++){
-           	sprintf(buffer, "$%02d: 0x%08X\n", i, registers[i]);
-           	fwrite(buffer, strlen(buffer), 1, fptr);
-       	}
-        //HI LO
-    	sprintf(buffer, "$HI: 0x%08X\n", HI);
-        fwrite(buffer, strlen(buffer), 1, fptr);
-       	sprintf(buffer, "$LO: 0x%08X\n", LO);
-       	fwrite(buffer, strlen(buffer), 1, fptr);
-       	//pc
-		sprintf(buffer, "PC: 0x%08X\n", pc);
-        fwrite(buffer, strlen(buffer), 1, fptr);
+	char buffer[20] = {'\0'};
 
-        sprintf(buffer, "\n\n");
-        fwrite(buffer, strlen(buffer), 1, fptr);
+	if(cycle == 0){//all print
+		fprintf(fptr, "cycle %d\n", cycle);
+        //reg
+        for(int i=0;i<32;i++)
+            fprintf(fptr, "$%02d: 0x%08X\n", i, registers[i]);
+        //HI LO
+        fprintf(fptr, "$HI: 0x%08X\n", HI);
+        fprintf(fptr, "$LO: 0x%08X\n", LO);
+        //pc
+        fprintf(fptr, "$PC: 0x%08X\n", pc);
+
+        fprintf(fptr, "\n\n");
 	}
 	else{//only print change
-        sprintf(buffer, "cycle%d\n", cycle);
-        fwrite(buffer, strlen(buffer), 1, fptr);
+    	fprintf(fptr, "cycle %d\n", cycle);
 
         //reg check diff
         for(int i=0;i<32;i++){
             if(oldRegisters[i] != registers[i]){
-                sprintf(buffer, "$%02d: 0x%08X\n", i, registers[i]);
-                fwrite(buffer, strlen(buffer), 1, fptr);
-            	oldRegisters[i] = registers[i];
-   	        }
+                fprintf(fptr, "$%02d: 0x%08X\n", i, registers[i]);
+                oldRegisters[i] = registers[i];
+            }
         }
         //HI LO
         if(oldHI != HI){
-            sprintf(buffer, "$HI: 0x%08X\n", HI);
-            fwrite(buffer, strlen(buffer), 1, fptr);
-        	oldHI = HI;
+            fprintf(fptr, "$HI: 0x%08X\n", HI);
+            oldHI = HI;
         }
         if(oldLO != LO){
-            sprintf(buffer, "$LO: 0x%08X\n", LO);
-            fwrite(buffer, strlen(buffer), 1, fptr);
-   	    	oldLO = LO;
+            fprintf(fptr, "$LO: 0x%08X\n", LO);
+            oldLO = LO;
         }
         //pc
         if(oldPc != pc){
-           sprintf(buffer, "PC: 0x%08X\n", pc);
-           fwrite(buffer, strlen(buffer), 1, fptr);
- 	       oldPc = pc;
+            fprintf(fptr, "PC: 0x%08X\n", pc);
+            oldPc = pc;
         }
-        sprintf(buffer, "\n\n");
-		fwrite(buffer, strlen(buffer), 1, fptr);
-    }	
+        fprintf(fptr, "\n\n");
+	}	
 	fclose(fptr);
 }
 
