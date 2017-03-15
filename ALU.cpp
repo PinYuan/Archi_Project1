@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "ALU.h"
+#include "errorDetect.h"
 using namespace std;
 extern bitset<32> HI;
 extern bitset<32> LO;
