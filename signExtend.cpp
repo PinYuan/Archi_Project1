@@ -10,3 +10,8 @@ bitset<32> signExtend(bitset<16> dataIn){
     return dataOut;
 }
 
+bitset<32> unsignExtend(bitset<16> dataIn){
+    bitset<32> dataOut(dataIn.to_ulong());
+    return dataOut;
+}
+
