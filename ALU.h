@@ -14,4 +14,3 @@ public:
 };
 
 #endif // ALU_H_INCLUDED
-

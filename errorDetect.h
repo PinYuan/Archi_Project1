@@ -7,10 +7,10 @@ class ErrorDetect{
 private:
     int mult;//mult(u)
     int mf;//mfhi mflo
-	int cycle;
+    int cycle;
 public:
     ErrorDetect();
-	void setCycle(int cycle);
+    void setCycle(int cycle);
     int writeToRegister0(bitset<5> writeToReg);
     int numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output);
     void overwriteHILORegister(bitset<6> func);
@@ -19,4 +19,3 @@ public:
 };
 
 #endif // ERRORDETECT_H_INCLUDED
-

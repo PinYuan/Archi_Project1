@@ -1,9 +1,9 @@
 #include <bits/stdc++.h>
-#include "errorDetect.h"
+#include "ErrorDetect.h"
 using namespace std;
 
 ErrorDetect::ErrorDetect(){
-	cycle = 0;
+    cycle = 0;
     mult = mf = 0;
     FILE* fptr;
     fptr = fopen("error_dump.rpt", "w");
@@ -16,26 +16,26 @@ int ErrorDetect::writeToRegister0(bitset<5> writeToReg){
     if(writeToReg == 0){
         FILE* fptr;
         fptr = fopen("error_dump.rpt", "a");
-        fprintf(fptr , "In cycle %d: Write $0 Error\n", cycle);
+        char buffer[35];fprintf(fptr, "In cycle %d: Write $0 Error\n", cycle);
         fclose(fptr);
-    	return 1;
-	}
-	else return 0;
+        return 1;
+    }
+    else return 0;
 }
 int ErrorDetect::numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output){
-    if(data1[31]==data2[31] && data1[31] != output[31]){
+    if((data1[31] ^ data2[31] == 0) && (data1[31] != output[31])){
         FILE* fptr;
         fptr = fopen("error_dump.rpt", "a");
         fprintf(fptr , "In cycle %d: Number Overflow\n", cycle);
         fclose(fptr);
-		return 1;
+        return 1;
     }
-	else return 0;
+    else return 0;
 }
 void ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u) and mfhi(lo)
     if(func == 24 || func == 25){//mult(u)
         mult++;
-    	if(mult != 1){
+        if(mult != 1){
             if(mf == 0){
                 FILE* fptr;
                 fptr = fopen("error_dump.rpt", "a");
@@ -44,14 +44,14 @@ void ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u
             }
             else mf = 0;
         }
-	}
+    }
     else if(func == 16 || func ==18){
         mf++;
     }
 }
 int ErrorDetect::memoryAddressOverflow(bitset<6> opCode, bitset<32> address){
     int halt = 0;
-	bitset<32> maxAddress(0);
+    bitset<32> maxAddress(0);
     if(opCode == 35 || opCode == 43)//word
         maxAddress = bitset<32> (address.to_ulong()+4);
     else if(opCode == 33 || opCode ==37 || opCode == 41)//half
@@ -85,4 +85,3 @@ int ErrorDetect::dataMisaligned(bitset<6> opCode, bitset<32> address){
     }
     return halt;
 }
-

@@ -68,7 +68,7 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
         }
         ALUResult = data1;
     }
-	else if(ALUControl == 11 || ALUControl == 12){//mult multu
+    else if(ALUControl == 11 || ALUControl == 12){//mult multu
         bitset<64> ALUResultInt64(0);
         if(ALUControl == 11){//mult
             //turn - => +
@@ -77,11 +77,11 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
             if(data1[31] == 1)
                 absData1 = bitset<32>(data1.flip().to_ulong()+1);
             else
-				absData1 = data1;
-			if(data2[31] == 1)
+                absData1 = data1;
+            if(data2[31] == 1)
                 absData2 = bitset<32>(data2.flip().to_ulong()+1);
-			else 
-				absData2 = data2;
+            else
+                absData2 = data2;
             for(int i=0;i<32;i++){
                 if(absData2[i] == 1){
                     bitset<64> temp = bitset<64>(absData1.to_ulong());
@@ -89,7 +89,7 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
                     ALUResultInt64 = bitset<64>(ALUResultInt64.to_ullong()+temp.to_ullong());
                 }
             }
-			///error detect + * + => -
+            ///error detect + * + => -
             bitset<32> test(0);
             test.set(31, ALUResultInt64[63]);
             ED.numberOverflow(absData1, absData2, test);
@@ -137,4 +137,3 @@ bitset<4> ALU::ALUcontrol(bitset<2> ALUop, bitset<6> func){
     ALUControl.set(0, (ALUop[0])|set0);
     return ALUControl;
 }
-
