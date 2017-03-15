@@ -11,10 +11,10 @@ private:
 public:
     ErrorDetect();
 	void setCycle(int cycle);
-    void writeToRegister0(bitset<5> writeToReg);
-    void numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output);
+    int writeToRegister0(bitset<5> writeToReg);
+    int numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> output);
     void overwriteHILORegister(bitset<6> func);
-    int memoryAddressOverflow(bitset<32> address);
+    int memoryAddressOverflow(bitset<6> opCode, bitset<32> address);
     int dataMisaligned(bitset<6> opCode, bitset<32> address);
 };
 

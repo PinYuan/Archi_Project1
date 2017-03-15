@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "ErrorDetect.h"
+#include "errorDetect.h"
 using namespace std;
 
 ErrorDetect::ErrorDetect(){
@@ -32,25 +32,33 @@ int ErrorDetect::numberOverflow(bitset<32> data1, bitset<32> data2, bitset<32> o
     }
 	else return 0;
 }
-int ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u) and mfhi(lo)
+void ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u) and mfhi(lo)
     if(func == 24 || func == 25){//mult(u)
         mult++;
-        if(mf != mult-1){
-            FILE* fptr;
-            fptr = fopen("error_dump.rpt", "a");
-            fprintf(fptr , "In cycle %d: Overwrite HI-LO registers\n", cycle);
-            fclose(fptr);
-			return 1;
+    	if(mult != 1){
+            if(mf == 0){
+                FILE* fptr;
+                fptr = fopen("error_dump.rpt", "a");
+                fprintf(fptr , "In cycle %d: Overwrite HI-LO registers\n", cycle);
+                fclose(fptr);
+            }
+            else mf = 0;
         }
-    }
+	}
     else if(func == 16 || func ==18){
         mf++;
     }
-	return 0;
 }
-int ErrorDetect::memoryAddressOverflow(bitset<32> address){
+int ErrorDetect::memoryAddressOverflow(bitset<6> opCode, bitset<32> address){
     int halt = 0;
-    if(address.to_ulong() > 1023){
+	bitset<32> maxAddress(0);
+    if(opCode == 35 || opCode == 43)//word
+        maxAddress = bitset<32> (address.to_ulong()+4);
+    else if(opCode == 33 || opCode ==37 || opCode == 41)//half
+        maxAddress = bitset<32> (address.to_ulong()+2);
+    else//byte
+        maxAddress = address;
+    if(maxAddress.to_ulong() > 1023){
         halt = 1;
         FILE* fptr;
         fptr = fopen("error_dump.rpt", "a");
