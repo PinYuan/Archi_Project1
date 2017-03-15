@@ -19,10 +19,10 @@ int main()
     DataMemory DM;
     RegisterFile RF;
     ALU ALU1;
-    
+   
     int cycle = 0;
     bitset<32> initialPc = pc;
-
+	
     //control
     bitset<2> ALUop;
 
@@ -30,7 +30,7 @@ int main()
 
     while(1){
         cycle++;
-
+		ED.setCycle(cycle);
         int offsetPc = pc.to_ulong() - initialPc.to_ulong();
 
         Instruction instruction(IM.readInstMemory(bitset<32>(offsetPc)));//Instruction instruction(IM.readInstMemory(pc));
@@ -114,9 +114,14 @@ int main()
                     //+ + +, - + -
                     if((RF.readData1[31] == 0 && RF.readData2[31] == 0) || (RF.readData1[31] == 1 && RF.readData2[31] == 1))
                         ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
-        			if(ED.memoryAddressOverflow(ALU1.ALUResult) || ED.dataMisaligned(instruction.opCode, ALU1.ALUResult))
+		            int halt = 0;
+                    if(ED.memoryAddressOverflow(instruction.opCode, ALU1.ALUResult))
+                        halt = 1;
+                    if(ED.dataMisaligned(instruction.opCode, ALU1.ALUResult))
+                        halt = 1;
+                    if(halt == 1)
                         break;
-		            
+					 
 					bitset<32> writeToReg = DM.readWriteMemory(ALU1.ALUResult, 0, 1, 0);//mem read
                     bitset<32> realWriteToReg(0);
 					if(instruction.opCode == 35){//lw
@@ -149,9 +154,14 @@ int main()
                     //+ + +, - + -
                     if((RF.readData1[31] == 0 && RF.readData2[31] == 0) || (RF.readData1[31] == 1 && RF.readData2[31] == 1))
                         ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
-					if(ED.memoryAddressOverflow(ALU1.ALUResult) || ED.dataMisaligned(instruction.opCode, ALU1.ALUResult))
-                        break;					
-
+					int halt = 0;
+                    if(ED.memoryAddressOverflow(instruction.opCode, ALU1.ALUResult))
+                        halt = 1;
+                    if(ED.dataMisaligned(instruction.opCode, ALU1.ALUResult))
+                        halt = 1;
+                    if(halt == 1)
+                        break;
+					
 					if(instruction.opCode == 43){//sw
                         DM.readWriteMemory(ALU1.ALUResult, RF.readData2, 0, 1);//mem write
                     }
@@ -174,25 +184,29 @@ int main()
                     RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                     ALUop.set(1, 0);
                     ALUop.set(0, 0);
-                    ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
-                    RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
+                    
+					if(instruction.opCode == 8)
+                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
+                    else if(instruction.opCode == 9)
+                        ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
+					RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
 		
                 	///error detect
-					ED.writeToRegister0(instruction.instruction.regRt);
+					ED.writeToRegister0(instruction.regRt);
                     if(instruction.opCode == 8)
                         ED.numberOverflow(RF.readData1, signExtend(instruction.immediate), ALU1.ALUResult);
 				}
-                else if(instruction.opCode == 16 || instruction.opCode == 12 || instruction.opCode == 13 || instruction.opCode == 14 || instruction.opCode == 10){
+                else if(instruction.opCode == 15 || instruction.opCode == 12 || instruction.opCode == 13 || instruction.opCode == 14 || instruction.opCode == 10){
                     RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                     //directly assign alu control
-                    if(instruction.opCode == 16)
+                    if(instruction.opCode == 15)
                         ALU1.ALUoperater(RF.readData2, 16, 8);//shift <<
                     else if(instruction.opCode == 12)
-                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate), 2);//andi
+                        ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate), 2);//andi
                     else if(instruction.opCode == 13)
-                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate), 3);//ori
+                        ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate), 3);//ori
                     else if(instruction.opCode == 14)
-                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate), 5);//nori
+                        ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate), 5);//nori
                     else if(instruction.opCode == 10)
                         ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate), 7);//slti
                     RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
@@ -211,8 +225,6 @@ int main()
             ALUop.set(1, 1);
             ALUop.set(0, 0);
 
-            //cout << instruction.func.to_ulong() << endl;
-
             if(instruction.func == 32 || instruction.func == 33 || instruction.func == 34){//add addu sub
                 RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                 ALU1.ALUoperater(RF.readData1, RF.readData2,  ALU1.ALUcontrol(ALUop, instruction.func));
@@ -220,7 +232,7 @@ int main()
             	
 				///error detect
                 ED.writeToRegister0(instruction.regRd);
-				if(instruction.opCode == 32)
+				if(instruction.func == 32)
                     ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
                 else if(instruction.func == 34)
                     //- - +  => - + -, + - - => + + +
