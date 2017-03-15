@@ -1,12 +1,14 @@
 #include <bits/stdc++.h>
+#include "memory.h"
+#include "errorDetect.h"
 using namespace std;
 
 extern  bitset<32> pc;
-extern  bitset<32> sp;
+extern  bitset<32> initialSp;
 
 InstructionMemory::InstructionMemory(){
 	FILE *fptr;
-	fptr = fopen("iimage.bin" , "rb");
+	fptr = fopen("../testcase/iimage.bin" , "rb");
 	if(!fptr){printf("open file error\n");return;}
 
 	char buffer[4];
@@ -20,9 +22,7 @@ InstructionMemory::InstructionMemory(){
 				bitset<8> bs(buffer[i]);
 				stringPc += bs.to_string();
 			}
-			bitset<32> bPc(stringPc);
-			//pc = bPc.to_ulong();
-			pc = bPc;
+			pc = bitset<32> (stringPc);
 		}
 		else if(eatTime == 1){
 			string stringNums;
@@ -75,7 +75,7 @@ void InstructionMemory::outputInstMemory(){
 
 DataMemory::DataMemory(){
 	FILE *fptr;
-	fptr = fopen("dimage.bin" , "rb");
+	fptr = fopen("../testcase/dimage.bin" , "rb");
 	if(!fptr){printf("open file error\n");return ;}
 
 	numOfData = 0;
@@ -90,9 +90,7 @@ DataMemory::DataMemory(){
 				bitset<8> bs(buffer[i]);
 				stringSp += bs.to_string();
 			}
-			bitset<32> bSp(stringSp);
-			//sp = bSp.to_ulong();
-			sp = bSp;
+			initialSp = bitset<32> (stringSp);
 		}
 		else if(eatTime == 1){
 			string stringNums;
@@ -115,7 +113,7 @@ DataMemory::DataMemory(){
 }
 
 bitset<32> DataMemory::readWriteMemory(bitset<32> address, bitset<32> writeData, bitset<1> memRead, bitset<1> memWrite){
-	if(memRead){
+	if(memRead == 1){
 		string dataString;
 		for(int i=0;i<4;i++){
 			dataString += dataMemory[address.to_ulong()+i].to_string();
@@ -123,7 +121,7 @@ bitset<32> DataMemory::readWriteMemory(bitset<32> address, bitset<32> writeData,
 		bitset<32> data(dataString);
 		return data;
 	}
-	if(memWrite){
+	if(memWrite == 1){
 	for(int i=0;i<4;i++){
 			for(int j=0;j<8;j++){
 				dataMemory[address.to_ulong()+i].set(j, writeData[(3-i)*8+j]);//big endian
