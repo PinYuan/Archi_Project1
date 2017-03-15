@@ -1,5 +1,7 @@
 #ifndef MEMORY_H_INCLUDED
 #define MEMORY_H_INCLUDED
+#include <bits/stdc++.h>
+using namespace std;
 
 class InstructionMemory{
 private:
