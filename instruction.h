@@ -1,8 +1,10 @@
 #ifndef INSTRUCTION_H_INCLUDED
 #define INSTRUCTION_H_INCLUDED
+#include <bits/stdc++.h>
+using namespace std;
 
 class Instruction{
-private:
+public:
     bitset<32> completeInst;
     bitset<6> opCode;
     bitset<5> regRs;
@@ -13,7 +15,7 @@ private:
     bitset<16> immediate;
     bitset<26> targetAddr;
     char type;
-public:
+
     Instruction(bitset<32> inst);
 };
 

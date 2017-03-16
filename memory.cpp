@@ -67,7 +67,7 @@ void InstructionMemory::outputInstMemory(){
 		bufferString += instMemory[i*4+j].to_string();
 		}
 		bitset<32> inst(bufferString);
-		sprintf(buffer, "0x%08X\n", inst);
+		sprintf(buffer, "0x%08X\n", (unsigned int)inst.to_ulong());
 		fwrite(buffer, strlen(buffer), 1, fptr);
 	}
 	fclose(fptr);
@@ -142,7 +142,7 @@ void DataMemory::outputDataMemory(){
 			bufferString += dataMemory[i*4+j].to_string();
 		}
 		bitset<32> data(bufferString);
-		sprintf(buffer, "0x%08X\n", data);
+		sprintf(buffer, "0x%08X\n", (unsigned int)data.to_ulong());
 		fwrite(buffer, strlen(buffer), 1, fptr);
 	}
 	fclose(fptr);

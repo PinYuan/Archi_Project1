@@ -42,21 +42,20 @@ void RegisterFile::readWrite(bitset<5> readRegister1, bitset<5> readRegister2, b
 
 void RegisterFile::outputRegister(int cycle){
 	FILE* fptr;
-    fptr = fopen("registerOut.out", "a");
+    fptr = fopen("snapshot.rpt", "a");
     if(!fptr){printf("open file error\n");return;}
 
-	char buffer[20] = {'\0'};
 
 	if(cycle == 0){//all print
 		fprintf(fptr, "cycle %d\n", cycle);
         //reg
         for(int i=0;i<32;i++)
-            fprintf(fptr, "$%02d: 0x%08X\n", i, registers[i]);
+            fprintf(fptr, "$%02d: 0x%08X\n", i, (unsigned int)registers[i].to_ulong());
         //HI LO
-        fprintf(fptr, "$HI: 0x%08X\n", HI);
-        fprintf(fptr, "$LO: 0x%08X\n", LO);
+        fprintf(fptr, "$HI: 0x%08X\n", (unsigned int)HI.to_ulong());
+        fprintf(fptr, "$LO: 0x%08X\n", (unsigned int)LO.to_ulong());
         //pc
-        fprintf(fptr, "$PC: 0x%08X\n", pc);
+        fprintf(fptr, "PC: 0x%08X\n", (unsigned int)pc.to_ulong());
 
         fprintf(fptr, "\n\n");
 	}
@@ -66,22 +65,22 @@ void RegisterFile::outputRegister(int cycle){
         //reg check diff
         for(int i=0;i<32;i++){
             if(oldRegisters[i] != registers[i]){
-                fprintf(fptr, "$%02d: 0x%08X\n", i, registers[i]);
+                fprintf(fptr, "$%02d: 0x%08X\n", i, (unsigned int)registers[i].to_ulong());
                 oldRegisters[i] = registers[i];
             }
         }
         //HI LO
         if(oldHI != HI){
-            fprintf(fptr, "$HI: 0x%08X\n", HI);
+            fprintf(fptr, "$HI: 0x%08X\n", (unsigned int)HI.to_ulong());
             oldHI = HI;
         }
         if(oldLO != LO){
-            fprintf(fptr, "$LO: 0x%08X\n", LO);
+            fprintf(fptr, "$LO: 0x%08X\n", (unsigned int)LO.to_ulong());
             oldLO = LO;
         }
         //pc
         if(oldPc != pc){
-            fprintf(fptr, "PC: 0x%08X\n", pc);
+            fprintf(fptr, "PC: 0x%08X\n", (unsigned int)pc.to_ulong());
             oldPc = pc;
         }
         fprintf(fptr, "\n\n");

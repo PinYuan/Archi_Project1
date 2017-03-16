@@ -211,7 +211,7 @@ int main()
                     RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
                 }
                 else{//unrecognized instruction
-                    printf("illegal instruction found at 0x%X\n", pc);
+                    printf("illegal instruction found at 0x%X\n",(unsigned int)pc.to_ulong());
                     break;
                 }
                 //pc = pc + 4
@@ -279,7 +279,7 @@ int main()
                 ED.overwriteHILORegister(instruction.func);
             }
             else{//unrecognized instruction
-                printf("illegal instruction found at 0x%X\n", pc);
+                printf("illegal instruction found at 0x%X\n", (unsigned int)pc.to_ulong());
                 break;
             }
             //pc = pc + 4

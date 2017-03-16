@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "ErrorDetect.h"
+#include "errorDetect.h"
 using namespace std;
 
 ErrorDetect::ErrorDetect(){
