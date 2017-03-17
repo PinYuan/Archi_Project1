@@ -53,9 +53,9 @@ int ErrorDetect::memoryAddressOverflow(bitset<6> opCode, bitset<32> address){
     int halt = 0;
     bitset<32> maxAddress(0);
     if(opCode == 35 || opCode == 43)//word
-        maxAddress = bitset<32> (address.to_ulong()+4);
+        maxAddress = bitset<32> (address.to_ulong()+3);
     else if(opCode == 33 || opCode ==37 || opCode == 41)//half
-        maxAddress = bitset<32> (address.to_ulong()+2);
+        maxAddress = bitset<32> (address.to_ulong()+1);
     else//byte
         maxAddress = address;
     if(maxAddress.to_ulong() > 1023){
