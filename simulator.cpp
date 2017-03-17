@@ -35,8 +35,8 @@ int main()
 
         Instruction instruction(IM.readInstMemory(bitset<32>(offsetPc)));//Instruction instruction(IM.readInstMemory(pc));
         //print instruction
-        cout << "cycle" << cycle << endl;
-        cout << "instruction: " << instruction.completeInst << ", type: " << instruction.type << "  " << instruction.func << endl;
+       // cout << "cycle" << cycle << endl;
+       // cout << "instruction: " << instruction.completeInst << ", type: " << instruction.type << "  " << instruction.func << endl;
 
         if(instruction.type == 'S'){//halt
             break;
@@ -187,7 +187,7 @@ int main()
                     if(instruction.opCode == 8)
                         ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
                     else if(instruction.opCode == 9)
-                        ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
+                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
                     RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
 
                     ///error detect
