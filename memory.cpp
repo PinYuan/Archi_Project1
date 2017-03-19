@@ -8,13 +8,17 @@ extern  bitset<32> initialSp;
 
 InstructionMemory::InstructionMemory(){
 	FILE *fptr;
-	fptr = fopen("../testcase/iimage.bin" , "rb");
+	fptr = fopen("iimage.bin" , "rb");
 	if(!fptr){printf("open file error\n");return;}
 
 	char buffer[4];
 	int eatTime = 0;
 	int nums = 0;
-
+	
+	bitset<8> zero(0);
+    for(int i=0;i<1024;i++)
+        instMemory[i] = zero;
+	
 	while(fread(buffer, 4, 1,fptr)){
 		if(eatTime == 0){
 			string stringPc;
@@ -36,10 +40,13 @@ InstructionMemory::InstructionMemory(){
 		else{
 			for(int i=0;i<4;i++){
 				bitset<8> inst(buffer[i]);
-				instMemory[nums++] = inst;
+                int programCounter = pc.to_ulong() + nums;
+                instMemory[programCounter] = inst;
+                nums++;
 			}
 		}
 		eatTime++;
+		if(eatTime == numOfInst+2)break;
 	}
 	fclose(fptr);
 }
@@ -75,13 +82,17 @@ void InstructionMemory::outputInstMemory(){
 
 DataMemory::DataMemory(){
 	FILE *fptr;
-	fptr = fopen("../testcase/dimage.bin" , "rb");
+	fptr = fopen("dimage.bin" , "rb");
 	if(!fptr){printf("open file error\n");return ;}
 
 	numOfData = 0;
 	char buffer[4];
 	int eatTime = 0;
 	int nums = 0;
+
+	bitset<8> zero(0);
+    for(int i=0;i<1024;i++)
+        dataMemory[i] = zero;
 
 	while(fread(buffer, 4, 1,fptr)){
 		if(eatTime == 0){
@@ -106,8 +117,10 @@ DataMemory::DataMemory(){
 				bitset<8> data(buffer[i]);
 				dataMemory[nums++] = data;
 			}
+			if(nums == 1024)break;
 		}
 		eatTime++;
+		if(eatTime == numOfData+2)break;
 	}
 	fclose(fptr);
 }
