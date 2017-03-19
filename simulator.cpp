@@ -21,22 +21,16 @@ int main()
     ALU ALU1;
 
     int cycle = 0;
-    bitset<32> initialPc = pc;
 
     //control
     bitset<2> ALUop;
 
     RF.outputRegister(cycle);
-    //DM.outputDataMemory();
     while(1){
         cycle++;
         ED.setCycle(cycle);
-        int offsetPc = pc.to_ulong() - initialPc.to_ulong();
 
-        Instruction instruction(IM.readInstMemory(bitset<32>(offsetPc)));//Instruction instruction(IM.readInstMemory(pc));
-        //print instruction
-       // cout << "cycle" << cycle << endl;
-       // cout << "instruction: " << instruction.completeInst << ", type: " << instruction.type << "  " << instruction.func << endl;
+        Instruction instruction(IM.readInstMemory(pc));//Instruction instruction(IM.readInstMemory(pc));
 
         if(instruction.type == 'S'){//halt
             break;
@@ -67,25 +61,19 @@ int main()
                 RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                 ALU1.ALUoperater(RF.readData1, RF.readData2,  ALU1.ALUcontrol(ALUop, 0));
 
-                ///error detect
-                //- - +  => - + -, + - - => + + +
-                if(RF.readData1[31] == 1 && RF.readData2[31] == 0)//error when ans is +
-                    ED.numberOverflow(-1, -1, ALU1.ALUResult);
-                else if(RF.readData1[31] == 0 && RF.readData2[31] == 1)//error when ans is -
-                    ED.numberOverflow(1, 1, ALU1.ALUResult);
 
                 if(instruction.opCode == 4)
-                    if(ALU1.zero == 1)
+                    if(RF.readData1 == RF.readData2)
                         satisfy = true;
                     else
                         satisfy = false;
                 else if(instruction.opCode == 5)
-                    if(~ALU1.zero == 1)
+                    if(RF.readData1 != RF.readData2)
                         satisfy = true;
                     else
                         satisfy = false;
                 else if(instruction.opCode == 7)
-                    if(~ALU1.ALUResult[31] == 1)
+                    if(RF.readData1[31]!=1 && RF.readData1.to_ulong()!=0)
                         satisfy = true;
                     else
                         satisfy = false;
@@ -105,15 +93,13 @@ int main()
                     ALUop.set(1, 0);
                     ALUop.set(0, 0);
 
-                    bitset<32> signExtenedImme = signExtend(instruction.immediate);
+                    bitset<32> signExtendImme = signExtend(instruction.immediate);
                     RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
-                    ALU1.ALUoperater(signExtenedImme, RF.readData1, ALU1.ALUcontrol(ALUop, 0));//$s + C(un/signed)
+                    ALU1.ALUoperater(signExtendImme, RF.readData1, ALU1.ALUcontrol(ALUop, 0));//$s + C(un/signed)
 
                     ///error detect
                     ED.writeToRegister0(instruction.regRt);
-                    //+ + +, - + -
-                    if((RF.readData1[31] == 0 && RF.readData2[31] == 0) || (RF.readData1[31] == 1 && RF.readData2[31] == 1))
-                        ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
+                    ED.numberOverflow(RF.readData1, signExtendImme, ALU1.ALUResult);
                     int halt = 0;
                     if(ED.memoryAddressOverflow(instruction.opCode, ALU1.ALUResult))
                         halt = 1;
@@ -151,9 +137,7 @@ int main()
                     ALU1.ALUoperater(signExtenedImme, RF.readData1, ALU1.ALUcontrol(ALUop, 0));//$s + C(signed)
 
                     ///error detect
-                    //+ + +, - + -
-                    if((RF.readData1[31] == 0 && RF.readData2[31] == 0) || (RF.readData1[31] == 1 && RF.readData2[31] == 1))
-                        ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
+                    ED.numberOverflow(RF.readData1, signExtenedImme, ALU1.ALUResult);
                     int halt = 0;
                     if(ED.memoryAddressOverflow(instruction.opCode, ALU1.ALUResult))
                         halt = 1;
@@ -184,10 +168,7 @@ int main()
                     RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                     ALUop.set(1, 0);
                     ALUop.set(0, 0);
-                    if(instruction.opCode == 8)
-                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
-                    else if(instruction.opCode == 9)
-                        ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
+                    ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate),  ALU1.ALUcontrol(ALUop, 0));
                     RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
 
                     ///error detect
@@ -199,7 +180,7 @@ int main()
                     RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                     //directly assign alu control
                     if(instruction.opCode == 15)
-                        ALU1.ALUoperater(RF.readData2, 16, 8);//shift <<
+                        ALU1.ALUoperater(unsignExtend(instruction.immediate), 16, 8);//shift <<
                     else if(instruction.opCode == 12)
                         ALU1.ALUoperater(RF.readData1, unsignExtend(instruction.immediate), 2);//andi
                     else if(instruction.opCode == 13)
@@ -209,7 +190,9 @@ int main()
                     else if(instruction.opCode == 10)
                         ALU1.ALUoperater(RF.readData1, signExtend(instruction.immediate), 7);//slti
                     RF.readWrite(0, 0, instruction.regRt, ALU1.ALUResult, 1);//reg write
-                }
+                	///error detect
+                	ED.writeToRegister0(instruction.regRt);
+				}
                 else{//unrecognized instruction
                     printf("illegal instruction found at 0x%X\n",(unsigned int)pc.to_ulong());
                     break;
@@ -233,17 +216,15 @@ int main()
                 if(instruction.func == 32)
                     ED.numberOverflow(RF.readData1, RF.readData2, ALU1.ALUResult);
                 else if(instruction.func == 34)
-                    //- - +  => - + -, + - - => + + +
-                    if(RF.readData1[31] == 1 && RF.readData2[31] == 0)//error when ans is +
-                        ED.numberOverflow(-1, -1, ALU1.ALUResult);
-                    else if(RF.readData1[31] == 0 && RF.readData2[31] == 1)//error when ans is -
-                        ED.numberOverflow(1, 1, ALU1.ALUResult);
-            }
+            		ED.numberOverflow(RF.readData1, bitset<32>(RF.readData2.flip().to_ulong()+1), ALU1.ALUResult);
+			}
             else if(instruction.func == 36 || instruction.func == 37 || instruction.func == 38 || instruction.func == 39 || instruction.func == 40 || instruction.func == 42){//and or xor nor nand slt
                 RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                 ALU1.ALUoperater(RF.readData1, RF.readData2,  ALU1.ALUcontrol(ALUop, instruction.func));
                 RF.readWrite(0, 0, instruction.regRd, ALU1.ALUResult, 1);//reg write
-            }
+            	///error detect
+                ED.writeToRegister0(instruction.regRd);
+			}
             else if(instruction.func == 0 || instruction.func == 2 || instruction.func == 3){//sll srl sra
                 RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
                 bitset<32> shift(instruction.shamt.to_ulong());
@@ -252,7 +233,7 @@ int main()
 
                 ///error detect
                 //NOP sll $0, $0, 0=0x00000000 skip
-                if(instruction.func != 0 || instruction.regRd != 0 || instruction.regRt != 0 || instruction.immediate == 0){
+                if(instruction.func != 0 || instruction.regRd != 0 || instruction.regRt != 0 || instruction.immediate != 0){
                     ED.writeToRegister0(instruction.regRd);
                 }
             }
