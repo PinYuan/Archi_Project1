@@ -58,7 +58,7 @@ int ErrorDetect::memoryAddressOverflow(bitset<6> opCode, bitset<32> address){
         maxAddress = bitset<32> (address.to_ulong()+1);
     else//byte
         maxAddress = address;
-    if(maxAddress.to_ulong() > 1023){
+    if(address.to_ulong() > 1023 || maxAddress.to_ulong() > 1023){
         halt = 1;
         FILE* fptr;
         fptr = fopen("error_dump.rpt", "a");
