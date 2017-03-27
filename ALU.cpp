@@ -74,13 +74,17 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
             //turn - => +
             bitset<32> absData1(0);
             bitset<32> absData2(0);
-            if(data1[31] == 1)
-                absData1 = bitset<32>(data1.flip().to_ulong()+1);
-            else
+            if(data1[31] == 1){
+				absData1 = bitset<32>(data1.flip().to_ulong()+1);
+            	data1.flip();
+			}
+			else
                 absData1 = data1;
-            if(data2[31] == 1)
+            if(data2[31] == 1){
                 absData2 = bitset<32>(data2.flip().to_ulong()+1);
-            else
+            	data2.flip();
+			}
+			else
                 absData2 = data2;
             for(int i=0;i<32;i++){
                 if(absData2[i] == 1){
