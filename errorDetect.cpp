@@ -46,7 +46,8 @@ void ErrorDetect::overwriteHILORegister(bitset<6> func){//every time call mult(u
         }
     }
     else if(func == 16 || func ==18){
-        mf++;
+		if(mult != 0)
+			mf++;
     }
 }
 int ErrorDetect::memoryAddressOverflow(bitset<6> opCode, bitset<32> address){
