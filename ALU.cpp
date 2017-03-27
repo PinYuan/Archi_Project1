@@ -96,8 +96,7 @@ bitset<32> ALU::ALUoperater(bitset<32> data1, bitset<32> data2, bitset<4> ALUCon
             ///error detect + * + => -
             bitset<32> test(0);
             test.set(31, ALUResultInt64[63]);
-            ED.numberOverflow(absData1, absData2, test);
-
+            
             if(data1[31] ^ data2[31])
                 ALUResultInt64 = bitset<64>(ALUResultInt64.flip().to_ullong()+1);
         }
