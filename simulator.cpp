@@ -52,10 +52,6 @@ int main()
         }
         else if(instruction.type == 'I'){
             if(instruction.opCode == 4 || instruction.opCode == 5 || instruction.opCode == 7){//beq bne bgtz
-                //ALU 01 for sub
-                ALUop.set(1, 0);
-                ALUop.set(0, 1);
-
                 bool satisfy;
                 bitset<32> signExtenedImme = signExtend(instruction.immediate);
                 RF.readWrite(instruction.regRs, instruction.regRt, 0, 0, 0);//reg read
